@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>594</width>
-    <height>433</height>
+    <width>679</width>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
            <widget class="QListWidget" name="listWidget_ConfigList"/>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit"/>
+           <widget class="QLineEdit" name="lineEdit_ModName"/>
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_Save">
@@ -134,7 +134,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_4"/>
+               <widget class="QLineEdit" name="lineEdit_Baud"/>
               </item>
              </layout>
             </item>
@@ -157,7 +157,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_10"/>
+               <widget class="QLineEdit" name="lineEdit_Interval"/>
               </item>
              </layout>
             </item>
@@ -180,7 +180,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_11"/>
+               <widget class="QLineEdit" name="lineEdit_Quantity"/>
               </item>
              </layout>
             </item>
@@ -200,9 +200,9 @@
                </spacer>
               </item>
               <item>
-               <widget class="QCheckBox" name="checkBox">
+               <widget class="QCheckBox" name="checkBox_Blank">
                 <property name="text">
-                 <string>包含一行空行</string>
+                 <string>其中包含一行空行</string>
                 </property>
                </widget>
               </item>
@@ -239,7 +239,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>594</width>
+     <width>679</width>
      <height>23</height>
     </rect>
    </property>

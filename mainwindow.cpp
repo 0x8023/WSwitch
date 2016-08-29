@@ -12,7 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     init_comboBox_ModelFile();
     init_comboBox_SerialPort();
     init_listWidget_ConfigList();
-
 }
 
 MainWindow::~MainWindow()
@@ -23,55 +22,70 @@ MainWindow::~MainWindow()
 void MainWindow::init_comboBox_ModelFile(){
     //扫描文件显示到选择框
     QDir ModDir(ModelFilePath);
+/*
+    //STL 风格迭代器
+    QList<QFileInfo> ModFileList = ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable);
+    QMutableListIterator<QFileInfo> ModFileIter(ModFileList);
+    while(ModFileIter.hasNext()){
+        QFileInfo Filter = ModFileIter.next();
+        if(Filter.suffix().compare("mod", Qt::CaseInsensitive) == 0){
+            ui->comboBox_ModelFile->addItem(Filter.fileName());
+        }
+    }
+
+    //Qt 风格迭代器
     foreach(QFileInfo ModFileInfo, ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable)){
         if(ModFileInfo.suffix().compare("mod", Qt::CaseInsensitive) == 0){
-            this->ui->comboBox_ModelFile->addItem(ModFileInfo.fileName());
+            ui->comboBox_ModelFile->addItem(ModFileInfo.fileName());
+        }
+    }
+*/
+    //C++17 风格迭代器
+    for(const QFileInfo& ModFileInfo : ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable)){
+        if(ModFileInfo.suffix().compare("mod", Qt::CaseInsensitive) == 0){
+            ui->comboBox_ModelFile->addItem(ModFileInfo.fileName());
         }
     }
 
     //触发选择框变更事件
-    emit this->ui->comboBox_ModelFile->currentIndexChanged(this->ui->comboBox_ModelFile->currentText());
+    emit ui->comboBox_ModelFile->currentIndexChanged(ui->comboBox_ModelFile->currentText());
 }
 
 void MainWindow::init_comboBox_SerialPort(){
     //扫描串口显示到选择框
+/*
+    //STL 风格迭代器
+    QList<QSerialPortInfo> SerialPortList = QSerialPortInfo::availablePorts();
+    QMutableListIterator<QSerialPortInfo> SerialPortIterator(SerialPortList);
+    while(SerialPortIterator.hasNext()){
+        ui->comboBox_SerialPort->addItem(SerialPortIterator.next().portName());
+    }
+
+    //Qt 风格迭代器
     foreach(QSerialPortInfo SerialPortList, QSerialPortInfo::availablePorts()){
-        this->ui->comboBox_SerialPort->addItem(SerialPortList.portName());
+        ui->comboBox_SerialPort->addItem(SerialPortList.portName());
+    }
+*/
+    //C++17 风格迭代器
+    for(const QSerialPortInfo& SerialPortList : QSerialPortInfo::availablePorts()){
+        ui->comboBox_SerialPort->addItem(SerialPortList.portName());
     }
 }
 
 void MainWindow::init_tableWidget_arg(){
-    this->ui->tableWidget_arg->setEditTriggers(QAbstractItemView::AllEditTriggers); //禁用横向滚动条
-    this->ui->tableWidget_arg->setColumnWidth(0 ,150); //设置第一列列宽为150
+    ui->tableWidget_arg->setEditTriggers(QAbstractItemView::AllEditTriggers); //禁用横向滚动条
+    ui->tableWidget_arg->setColumnWidth(0 ,150); //设置第一列列宽为150
 }
 
 void MainWindow::init_listWidget_ConfigList(){
-    //打开配置文件
-    QFile ConfigFile(ConfigFileName);
-    if (!ConfigFile.open(QIODevice::ReadOnly)){
-        QMessageBox::critical(this, "严重错误!", "打开配置文件失败!");
-        return;
-    }
-
-    //正则匹配所有节
-    QRegularExpression re("(?<=\\[).*?(?=\\])");
-    QRegularExpressionMatchIterator remi = re.globalMatch(ConfigFile.readAll());
-    while(remi.hasNext()){
-        QRegularExpressionMatch match = remi.next();
-        this->ui->listWidget_ConfigList->addItem(match.captured(0));
-    }
-
-    //关闭文件
-    ConfigFile.close();
-}
-
-void MainWindow::on_pushButton_Save_clicked(){
-
+    //读取配置文件
+    QSettings ConfigFile(ConfigFileName, QSettings::IniFormat);
+    ui->listWidget_ConfigList->addItems(ConfigFile.childGroups());
 }
 
 void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
     //清空表格
-    this->ui->tableWidget_arg->clear();
+    ui->tableWidget_arg->clear();
 
     //读取模板文件
     QFile ModFile(ModelFilePath + "/" + arg1);
@@ -86,15 +100,24 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
     QSet<QString> ParameterSet;
     while(remi.hasNext()){
         QRegularExpressionMatch match = remi.next();
-        ParameterSet << match.captured(0);;
+        ParameterSet << match.captured(0);
     }
 
     //循环写入表格
-    this->ui->tableWidget_arg->setRowCount(ParameterSet.size());
+    ui->tableWidget_arg->setRowCount(ParameterSet.size());
     quint8 con = 0;
+/*
+    //Qt 风格迭代器
     foreach(QString Parameter, ParameterSet){
-        this->ui->tableWidget_arg->setItem(con, 0, new QTableWidgetItem(Parameter));
-        this->ui->tableWidget_arg->item(con, 0)->setFlags(Qt::NoItemFlags);
+        ui->tableWidget_arg->setItem(con, 0, new QTableWidgetItem(Parameter));
+        ui->tableWidget_arg->item(con, 0)->setFlags(Qt::NoItemFlags);
+        con++;
+    }
+*/
+    //C++17 风格迭代器
+    for(const QString& Parameter : ParameterSet){
+        ui->tableWidget_arg->setItem(con, 0, new QTableWidgetItem(Parameter));
+        ui->tableWidget_arg->item(con, 0)->setFlags(Qt::NoItemFlags);
         con++;
     }
 
@@ -106,7 +129,27 @@ void MainWindow::on_actionWrite_triggered(){
 
 }
 
+void MainWindow::on_pushButton_Save_clicked(){
+    QSettings ConfigFile(ConfigFileName, QSettings::IniFormat);
+    ConfigFile.beginGroup(ui->lineEdit_ModName->text());
+    ConfigFile.setValue("SerialPort", ui->comboBox_SerialPort->currentText());
+    ConfigFile.setValue("Baud", ui->lineEdit_Baud->text());
+    ConfigFile.setValue("Interval", ui->lineEdit_Interval->text());
+    ConfigFile.setValue("Quantity", ui->lineEdit_Quantity->text());
+    ConfigFile.endGroup();
+}
+
 void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item)
 {
-    qDebug()<<item->text();
+    QSettings ConfigFile(ConfigFileName, QSettings::IniFormat);
+    ConfigFile.beginGroup(item->text());
+    if(ui->comboBox_SerialPort->findText(ConfigFile.value("SerialPort").toString()) == -1){
+        QMessageBox::warning(this, "警告!", "串口号选择错误.");
+    }else{
+        ui->comboBox_SerialPort->setCurrentText(ConfigFile.value("SerialPort").toString());
+    }
+    ui->lineEdit_Baud->setText(ConfigFile.value("Baud").toString());
+    ui->lineEdit_Interval->setText(ConfigFile.value("Interval").toString());
+    ui->lineEdit_Quantity->setText(ConfigFile.value("Quantity").toString());
+    ConfigFile.endGroup();
 }
