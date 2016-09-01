@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
+    <width>622</width>
     <height>549</height>
    </rect>
   </property>
@@ -30,16 +30,58 @@
           <item>
            <widget class="QPushButton" name="pushButton_Save">
             <property name="text">
-             <string>Save</string>
+             <string>保存配置</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
           <item>
-           <widget class="QComboBox" name="comboBox_ModelFile"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
+            <item>
+             <widget class="QPushButton" name="pushButton_BeforeModelFile">
+              <property name="text">
+               <string>前文模板:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_BeforeModelFile"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
+            <item>
+             <widget class="QPushButton" name="pushButton_ModelFile">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>正文模板:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_ModelFile"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1">
+            <item>
+             <widget class="QPushButton" name="pushButton_AfterModelFile">
+              <property name="text">
+               <string>后文模板:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_AfterModelFile"/>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QTableWidget" name="tableWidget_arg">
@@ -116,7 +158,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
+             <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
               <item>
                <widget class="QLabel" name="label_3">
                 <property name="maximumSize">
@@ -134,7 +176,51 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_Baud"/>
+               <widget class="QComboBox" name="comboBox_Baud">
+                <property name="currentIndex">
+                 <number>-1</number>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>1200</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>2400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>4800</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>9600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>19200</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>38400</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>57600</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>115200</string>
+                 </property>
+                </item>
+               </widget>
               </item>
              </layout>
             </item>
@@ -228,7 +314,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QListWidget" name="listWidget_2"/>
+       <widget class="QTextEdit" name="textEdit_"/>
       </item>
      </layout>
     </item>
@@ -239,7 +325,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>679</width>
+     <width>622</width>
      <height>23</height>
     </rect>
    </property>
