@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="verticalLayout_5" stretch="5,2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="8,16,0">
+       <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="5,10,6">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -130,7 +130,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+             <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
               <item>
                <widget class="QLabel" name="label_3">
                 <property name="maximumSize">
@@ -196,76 +196,6 @@
               </item>
              </layout>
             </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="1,1">
-              <item>
-               <widget class="QLabel" name="label_9">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>每组命令间隔</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEdit_Interval"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,1">
-              <item>
-               <widget class="QLabel" name="label_10">
-                <property name="maximumSize">
-                 <size>
-                  <width>100</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>每组命令行数</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEdit_Quantity"/>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0">
-              <item>
-               <spacer name="horizontalSpacer_5">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkBox_Blank">
-                <property name="text">
-                 <string>额外添加一行空行</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
            </layout>
           </item>
           <item>
@@ -280,13 +210,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>PushButton</string>
-            </property>
-           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,1">

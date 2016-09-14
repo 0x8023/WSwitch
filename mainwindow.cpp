@@ -63,13 +63,15 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
         return;
     }
 
-    //正则过滤参数, 集合去重
+    //正则过滤参数, 有序列表去重
     QRegularExpression re(RegularExpression);
     QRegularExpressionMatchIterator remi = re.globalMatch(ModFile.readAll());
-    QSet<QString> ParameterSet;
+    QStringList ParameterSet;
     while(remi.hasNext()){
         QRegularExpressionMatch match = remi.next();
-        ParameterSet << match.captured(0);
+        if (!ParameterSet.contains(match.captured(0))){
+            ParameterSet << match.captured(0);
+        }
     }
 
     //循环写入表格
@@ -102,9 +104,6 @@ void MainWindow::on_actionWrite_triggered(){
         ModText.replace(QRegularExpression("{" + ui->tableWidget_arg->item(con,0)->text() + "}"), ui->tableWidget_arg->item(con,1)->text());
     }
 
-    //分割文件
-    QStringList ModList = ModText.split(Commas);
-
     //初始化串口
     QSerialPort serialport;
     serialport.setPortName(ui->comboBox_SerialPort->currentText()); //串口号
@@ -118,76 +117,26 @@ void MainWindow::on_actionWrite_triggered(){
         return;
     }
 
-    //解析第一部分
-    if (!ModList[0].isEmpty()){
-        for (const QString& Command : ModList[0].split("\r\n")){
-            if (Command.startsWith("%")){
-                switch (Command.mid(1, 1).constData()->toLatin1()){
-                    case 'D': //延时
-                        delay(Command.mid(3).toInt());
-                        break;
-                    case 'E': //回车
-                        serialport.write("\r\n");
-                        break;
-                    case 'S': //发送
-                        serialport.write(Command.mid(3).toLatin1() + "\r\n");
-                        break;
-                    default:
-                        break;
+    //解析内容
+    QString data = "";
+    if (!ModText.isEmpty()){
+        for (const QString& Command : ModText.split("\r\n")){
+            if (!Command.startsWith("%")){ //不是命令
+                if(!Command.isEmpty()){
+                    data += Command + "\r\n";
                 }
-            }else if(!Command.isEmpty()){
-                serialport.write(Command.toLatin1() + "\r\n");
-            }
-        }
-    }
-
-    //解析第二部分
-    if (!ModList[1].isEmpty()){
-        quint32 con = 0;
-        QString data = "";
-        for (const QString& Command : ModList[1].split("\r\n")){
-            if (++con > ui->lineEdit_Quantity->text().toUInt()){
-                serialport.write(data.toLatin1());
-                data.clear();
-                if (ui->checkBox_Blank->isChecked()){
-                    serialport.write("\r\n");
-                }
-                delay(ui->lineEdit_Interval->text().toUInt());
-                con = 0;
-            }else{
-                data += Command + "\r\n";
-            }
-        }
-        if (con != 0){
-            serialport.write(data.toLatin1());
-            data.clear();
-            if (ui->checkBox_Blank->isChecked()){
+            }else if (Command.startsWith("%Delay:")){ //延时
+                delay(Command.mid(7).toInt());
+            }else if (Command.startsWith("%Enter:")){ //回车
                 serialport.write("\r\n");
-            }
-            delay(ui->lineEdit_Interval->text().toUInt());
-            con = 0;
-        }
-    }
-
-    //解析第三部分
-    if (!ModList[2].isEmpty()){
-        for (const QString& Command : ModList[2].split("\r\n")){
-            if (Command.startsWith("%")){
-                switch (Command.mid(1, 1).constData()->toLatin1()){
-                    case 'D': //延时
-                        delay(Command.mid(3).toInt());
-                        break;
-                    case 'E': //回车
-                        serialport.write("\r\n");
-                        break;
-                    case 'S': //发送
-                        serialport.write(Command.mid(3).toLatin1() + "\r\n");
-                        break;
-                    default:
-                        break;
-                }
-            }else if(!Command.isEmpty()){
-                serialport.write(Command.toLatin1() + "\r\n");
+            }else if (Command.startsWith("%Send:")){ //发送单条命令
+                serialport.write(Command.mid(6).toLatin1() + "\r\n");
+            }else if (Command.startsWith("%Write:")){ //发送多条命令
+                serialport.write(data.toLatin1());
+                delay(data.length()*2);
+                data.clear();
+            }else{
+                ;
             }
         }
     }
@@ -202,11 +151,12 @@ void MainWindow::on_pushButton_Save_clicked(){
     ConfigFile.beginGroup(ui->lineEdit_ModName->text());
     ConfigFile.setValue("SerialPort", ui->comboBox_SerialPort->currentText());
     ConfigFile.setValue("Baud", ui->comboBox_Baud->currentText());
-    ConfigFile.setValue("Interval", ui->lineEdit_Interval->text());
-    ConfigFile.setValue("Quantity", ui->lineEdit_Quantity->text());
-    ConfigFile.setValue("Blank", ui->checkBox_Blank->isChecked());
     ConfigFile.setValue("ModelFile", ui->comboBox_ModelFile->currentText());
     ConfigFile.endGroup();
+
+    //刷新配置列表
+    ui->listWidget_ConfigList->clear();
+    init_listWidget_ConfigList();
 }
 
 void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item){
@@ -216,9 +166,6 @@ void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *ite
     ConfigFile.beginGroup(item->text());
     ui->comboBox_SerialPort->setCurrentIndex(ui->comboBox_SerialPort->findText(ConfigFile.value("SerialPort").toString()));
     ui->comboBox_Baud->setCurrentText(ConfigFile.value("Baud").toString());
-    ui->lineEdit_Interval->setText(ConfigFile.value("Interval").toString());
-    ui->lineEdit_Quantity->setText(ConfigFile.value("Quantity").toString());
-    ui->checkBox_Blank->setChecked(ConfigFile.value("Blank").toBool());
     ui->comboBox_ModelFile->setCurrentIndex(ui->comboBox_ModelFile->findText(ConfigFile.value("ModelFile").toString()));
     ConfigFile.endGroup();
 }
@@ -229,25 +176,24 @@ void MainWindow::on_pushButton_ModelFile_clicked(){
 
 quint32 MainWindow::get_estimated_time(QString ModText){
     quint32 runtime = 0;
-    quint16 con = 0;
-    for (const QString& Command : ModText.split("\r\n")){
-        if (Command.startsWith("%")){
-            switch(Command.mid(1, 1).constData()->toLatin1()){
-                case 'D': //延时
-                    runtime += Command.mid(3).toInt() + 10;
-                    break;
-                default:
-                    runtime += 10;
-                    break;
-            }
-        }else {
-            if (++con >= ui->lineEdit_Quantity->text().toInt()){
-                runtime += ui->lineEdit_Interval->text().toInt() + 10;
-                con = 0;
+    if (!ModText.isEmpty()){
+        for (const QString& Command : ModText.split("\r\n")){
+            if (!Command.startsWith("%")){ //不是命令
+                runtime += 16;
+            }else if (Command.startsWith("%Delay%")){ //延时
+                runtime += Command.mid(5).toInt() + 10;
+            }else if (Command.startsWith("%Enter%")){ //回车
+                runtime += 32;
+            }else if (Command.startsWith("%Send%")){ //发送单条命令
+                runtime += 64;
+            }else if (Command.startsWith("%Write%")){ //发送多条命令
+                runtime += 128;
+            }else{
+                ;
             }
         }
     }
-    return runtime + ui->lineEdit_Interval->text().toInt() + 1256;
+    return runtime + 512;
 }
 
 void MainWindow::on_checkBox_ShowLog_toggled(bool checked){
