@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
-#include <QDesktopServices>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -45,8 +45,6 @@ void MainWindow::init_comboBox_ModelFile(){
     for(const QFileInfo& ModFileInfo : ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable)){
         if(ModFileInfo.suffix().compare(ModelSuffix, Qt::CaseInsensitive) == 0){
             ui->comboBox_ModelFile->addItem(ModFileInfo.fileName());
-            ui->comboBox_AfterModelFile->addItem(ModFileInfo.fileName());
-            ui->comboBox_BeforeModelFile->addItem(ModFileInfo.fileName());
         }
     }
 
@@ -131,27 +129,30 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
 }
 
 void MainWindow::on_actionWrite_triggered(){
-    //打开文件
+    //读取文件内容
     QFile ModFile(ModelFilePath + "/" + ui->comboBox_ModelFile->currentText());
     if (!ModFile.open(QIODevice::ReadOnly)){
-        QMessageBox::critical(this, "错误!", "打开模板文件失败.");
+        QMessageBox::critical(this, "错误!", "打开正文模板文件失败.");
         return;
     }
-
-    //读取/关闭文件并替换参数
     QString ModText = ModFile.readAll();
     ModFile.close();
+
+    //解析带命令的模板文件
+
+    //解析纯命令模板文件
+    //替换参数
     for(qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
         ModText.replace(QRegularExpression("{" + ui->tableWidget_arg->item(con,0)->text() + "}"), ui->tableWidget_arg->item(con,1)->text());
     }
 
     for(const QString& Command : ModText.split("\r\n")){
         switch(Command.mid(1, 1).constData()->toLatin1()){
-            case 'D':
+            case 'D': //延时
                 break;
-            case 'E':
+            case 'E': //回车
                 break;
-            case 'S':
+            case 'S': //发送
                 break;
             default:
                 break;
@@ -177,11 +178,7 @@ void MainWindow::on_pushButton_Save_clicked(){
     ConfigFile.setValue("Interval", ui->lineEdit_Interval->text());
     ConfigFile.setValue("Quantity", ui->lineEdit_Quantity->text());
     ConfigFile.setValue("Blank", ui->checkBox_Blank->isChecked());
-
-    ConfigFile.setValue("BeforeModelFile", ui->comboBox_BeforeModelFile->currentText());
     ConfigFile.setValue("ModelFile", ui->comboBox_ModelFile->currentText());
-    ConfigFile.setValue("AfterModelFile", ui->comboBox_AfterModelFile->currentText());
-
     ConfigFile.endGroup();
 }
 
@@ -195,23 +192,11 @@ void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *ite
     ui->lineEdit_Interval->setText(ConfigFile.value("Interval").toString());
     ui->lineEdit_Quantity->setText(ConfigFile.value("Quantity").toString());
     ui->checkBox_Blank->setChecked(ConfigFile.value("Blank").toBool());
-
-    ui->comboBox_BeforeModelFile->setCurrentIndex(ui->comboBox_BeforeModelFile->findText(ConfigFile.value("BeforeModelFile").toString()));
     ui->comboBox_ModelFile->setCurrentIndex(ui->comboBox_ModelFile->findText(ConfigFile.value("ModelFile").toString()));
-    ui->comboBox_AfterModelFile->setCurrentIndex(ui->comboBox_AfterModelFile->findText(ConfigFile.value("AfterModelFile").toString()));
-
     ConfigFile.endGroup();
-}
-
-void MainWindow::on_pushButton_BeforeModelFile_clicked(){
-    QDesktopServices::openUrl(QUrl::fromLocalFile(ModelFilePath + "/" + ui->comboBox_BeforeModelFile->currentText()));
 }
 
 void MainWindow::on_pushButton_ModelFile_clicked(){
     QDesktopServices::openUrl(QUrl::fromLocalFile(ModelFilePath + "/" + ui->comboBox_ModelFile->currentText()));
-}
-
-void MainWindow::on_pushButton_AfterModelFile_clicked(){
-    QDesktopServices::openUrl(QUrl::fromLocalFile(ModelFilePath + "/" + ui->comboBox_AfterModelFile->currentText()));
 }
 

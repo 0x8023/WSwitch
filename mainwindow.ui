@@ -37,21 +37,7 @@
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,1">
-            <item>
-             <widget class="QPushButton" name="pushButton_BeforeModelFile">
-              <property name="text">
-               <string>前文模板:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="comboBox_BeforeModelFile"/>
-            </item>
-           </layout>
-          </item>
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
             <item>
@@ -60,26 +46,12 @@
                <string notr="true"/>
               </property>
               <property name="text">
-               <string>正文模板:</string>
+               <string>模板文件:</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_ModelFile"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1">
-            <item>
-             <widget class="QPushButton" name="pushButton_AfterModelFile">
-              <property name="text">
-               <string>后文模板:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="comboBox_AfterModelFile"/>
             </item>
            </layout>
           </item>

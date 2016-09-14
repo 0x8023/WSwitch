@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QListWidgetItem>
+#include <QDesktopServices>
 
 namespace Ui {
 class MainWindow;
@@ -28,9 +29,7 @@ private slots:
     void on_comboBox_ModelFile_currentIndexChanged(const QString &arg1);
     void on_actionWrite_triggered();
     void on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item);
-    void on_pushButton_BeforeModelFile_clicked();
     void on_pushButton_ModelFile_clicked();
-    void on_pushButton_AfterModelFile_clicked();
 
 private:
     Ui::MainWindow *ui;
