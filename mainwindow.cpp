@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
+#include <QThread>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -23,25 +24,6 @@ MainWindow::~MainWindow()
 void MainWindow::init_comboBox_ModelFile(){
     //扫描文件显示到选择框
     QDir ModDir(ModelFilePath);
-/*
-    //STL 风格迭代器
-    QList<QFileInfo> ModFileList = ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable);
-    QMutableListIterator<QFileInfo> ModFileIter(ModFileList);
-    while(ModFileIter.hasNext()){
-        QFileInfo Filter = ModFileIter.next();
-        if(Filter.suffix().compare("mod", Qt::CaseInsensitive) == 0){
-            ui->comboBox_ModelFile->addItem(Filter.fileName());
-        }
-    }
-
-    //Qt 风格迭代器
-    foreach(QFileInfo ModFileInfo, ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable)){
-        if(ModFileInfo.suffix().compare("mod", Qt::CaseInsensitive) == 0){
-            ui->comboBox_ModelFile->addItem(ModFileInfo.fileName());
-        }
-    }
-*/
-    //C++17 风格迭代器
     for(const QFileInfo& ModFileInfo : ModDir.entryInfoList(QDir::Files | QDir::NoSymLinks | QDir::Readable)){
         if(ModFileInfo.suffix().compare(ModelSuffix, Qt::CaseInsensitive) == 0){
             ui->comboBox_ModelFile->addItem(ModFileInfo.fileName());
@@ -54,20 +36,6 @@ void MainWindow::init_comboBox_ModelFile(){
 
 void MainWindow::init_comboBox_SerialPort(){
     //扫描串口显示到选择框
-/*
-    //STL 风格迭代器
-    QList<QSerialPortInfo> SerialPortList = QSerialPortInfo::availablePorts();
-    QMutableListIterator<QSerialPortInfo> SerialPortIterator(SerialPortList);
-    while(SerialPortIterator.hasNext()){
-        ui->comboBox_SerialPort->addItem(SerialPortIterator.next().portName());
-    }
-
-    //Qt 风格迭代器
-    foreach(QSerialPortInfo SerialPortList, QSerialPortInfo::availablePorts()){
-        ui->comboBox_SerialPort->addItem(SerialPortList.portName());
-    }
-*/
-    //C++17 风格迭代器
     for(const QSerialPortInfo& SerialPortList : QSerialPortInfo::availablePorts()){
         ui->comboBox_SerialPort->addItem(SerialPortList.portName());
     }
@@ -108,16 +76,7 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
     ui->tableWidget_arg->setRowCount(2);
     ui->tableWidget_arg->setRowCount(ParameterSet.size());
     quint16 con = 0;
-/*
-    //Qt 风格迭代器
-    foreach(QString Parameter, ParameterSet){
-        ui->tableWidget_arg->setItem(con, 0, new QTableWidgetItem(Parameter));
-        ui->tableWidget_arg->item(con, 0)->setFlags(Qt::NoItemFlags);
-        con++;
-    }
-*/
-    //C++17 风格迭代器
-    for(const QString& Parameter : ParameterSet){
+    for (const QString& Parameter : ParameterSet){
         ui->tableWidget_arg->setItem(con, 0, new QTableWidgetItem(Parameter));
         ui->tableWidget_arg->setItem(con, 1, new QTableWidgetItem(""));
         ui->tableWidget_arg->item(con, 0)->setFlags(Qt::NoItemFlags);
@@ -138,35 +97,103 @@ void MainWindow::on_actionWrite_triggered(){
     QString ModText = ModFile.readAll();
     ModFile.close();
 
-    //解析带命令的模板文件
-
-    //解析纯命令模板文件
     //替换参数
-    for(qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
+    for (qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
         ModText.replace(QRegularExpression("{" + ui->tableWidget_arg->item(con,0)->text() + "}"), ui->tableWidget_arg->item(con,1)->text());
     }
 
-    for(const QString& Command : ModText.split("\r\n")){
-        switch(Command.mid(1, 1).constData()->toLatin1()){
-            case 'D': //延时
-                break;
-            case 'E': //回车
-                break;
-            case 'S': //发送
-                break;
-            default:
-                break;
+    //分割文件
+    QStringList ModList = ModText.split(Commas);
+
+    //初始化串口
+    QSerialPort serialport;
+    serialport.setPortName(ui->comboBox_SerialPort->currentText()); //串口号
+    serialport.setBaudRate(ui->comboBox_Baud->currentText().toInt()); //波特率
+    serialport.setDataBits(QSerialPort::Data8); //数据位
+    serialport.setParity(QSerialPort::NoParity); //校验位
+    serialport.setStopBits(QSerialPort::OneStop); //停止位
+    serialport.setFlowControl(QSerialPort::NoFlowControl); //流控
+    if(!serialport.open(QIODevice::ReadWrite)){
+        QMessageBox::critical(this, "错误!", "打开串口失败.");
+        return;
+    }
+
+    //解析第一部分
+    if (!ModList[0].isEmpty()){
+        for (const QString& Command : ModList[0].split("\r\n")){
+            if (Command.startsWith("%")){
+                switch (Command.mid(1, 1).constData()->toLatin1()){
+                    case 'D': //延时
+                        delay(Command.mid(3).toInt());
+                        break;
+                    case 'E': //回车
+                        serialport.write("\r\n");
+                        break;
+                    case 'S': //发送
+                        serialport.write(Command.mid(3).toLatin1() + "\r\n");
+                        break;
+                    default:
+                        break;
+                }
+            }else if(!Command.isEmpty()){
+                serialport.write(Command.toLatin1() + "\r\n");
+            }
         }
     }
 
-    for(const QString& Command : ModText.split("\r\n")){
-        qDebug()<<Command;
+    //解析第二部分
+    if (!ModList[1].isEmpty()){
+        quint32 con = 0;
+        QString data = "";
+        for (const QString& Command : ModList[1].split("\r\n")){
+            if (++con > ui->lineEdit_Quantity->text().toUInt()){
+                serialport.write(data.toLatin1());
+                data.clear();
+                if (ui->checkBox_Blank->isChecked()){
+                    serialport.write("\r\n");
+                }
+                delay(ui->lineEdit_Interval->text().toUInt());
+                con = 0;
+            }else{
+                data += Command + "\r\n";
+            }
+        }
+        if (con != 0){
+            serialport.write(data.toLatin1());
+            data.clear();
+            if (ui->checkBox_Blank->isChecked()){
+                serialport.write("\r\n");
+            }
+            delay(ui->lineEdit_Interval->text().toUInt());
+            con = 0;
+        }
     }
 
-    for(const QString& Command : ModText.split("\r\n")){
-        qDebug()<<Command;
+    //解析第三部分
+    if (!ModList[2].isEmpty()){
+        for (const QString& Command : ModList[2].split("\r\n")){
+            if (Command.startsWith("%")){
+                switch (Command.mid(1, 1).constData()->toLatin1()){
+                    case 'D': //延时
+                        delay(Command.mid(3).toInt());
+                        break;
+                    case 'E': //回车
+                        serialport.write("\r\n");
+                        break;
+                    case 'S': //发送
+                        serialport.write(Command.mid(3).toLatin1() + "\r\n");
+                        break;
+                    default:
+                        break;
+                }
+            }else if(!Command.isEmpty()){
+                serialport.write(Command.toLatin1() + "\r\n");
+            }
+        }
     }
-
+    delay(256);
+    serialport.close();
+    QMessageBox::information(this, "成功!", "写入完成.");
 }
 
 void MainWindow::on_pushButton_Save_clicked(){
@@ -200,3 +227,56 @@ void MainWindow::on_pushButton_ModelFile_clicked(){
     QDesktopServices::openUrl(QUrl::fromLocalFile(ModelFilePath + "/" + ui->comboBox_ModelFile->currentText()));
 }
 
+quint32 MainWindow::get_estimated_time(QString ModText){
+    quint32 runtime = 0;
+    quint16 con = 0;
+    for (const QString& Command : ModText.split("\r\n")){
+        if (Command.startsWith("%")){
+            switch(Command.mid(1, 1).constData()->toLatin1()){
+                case 'D': //延时
+                    runtime += Command.mid(3).toInt() + 10;
+                    break;
+                default:
+                    runtime += 10;
+                    break;
+            }
+        }else {
+            if (++con >= ui->lineEdit_Quantity->text().toInt()){
+                runtime += ui->lineEdit_Interval->text().toInt() + 10;
+                con = 0;
+            }
+        }
+    }
+    return runtime + ui->lineEdit_Interval->text().toInt() + 1256;
+}
+
+void MainWindow::on_checkBox_ShowLog_toggled(bool checked){
+    //隐藏/显示详细讯息
+    ui->textEdit_Log->setVisible(checked);
+}
+
+void MainWindow::delay(int msec){
+    QTime dieTime = QTime::currentTime().addMSecs(msec);
+    while(QTime::currentTime() < dieTime){
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    QSerialPort *serialport = new QSerialPort();
+    serialport->setPortName("COM3"); //串口号
+    serialport->setBaudRate(QSerialPort::Baud9600); //波特率
+    serialport->setDataBits(QSerialPort::Data8); //数据位
+    serialport->setParity(QSerialPort::NoParity); //校验位
+    serialport->setStopBits(QSerialPort::OneStop); //停止位
+    serialport->setFlowControl(QSerialPort::NoFlowControl); //流控
+    if(!serialport->open(QIODevice::WriteOnly)){
+        QMessageBox::critical(this, "错误!", "打开串口失败.");
+        return;
+    }
+
+    serialport->write("233333\r\n");
+    delay(2000);
+    serialport->close();
+}

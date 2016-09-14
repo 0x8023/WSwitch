@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QListWidgetItem>
 #include <QDesktopServices>
+#include <QTime>
 
 namespace Ui {
 class MainWindow;
@@ -30,6 +31,9 @@ private slots:
     void on_actionWrite_triggered();
     void on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item);
     void on_pushButton_ModelFile_clicked();
+    void on_checkBox_ShowLog_toggled(bool checked);
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -37,7 +41,8 @@ private:
     void init_comboBox_SerialPort();
     void init_tableWidget_arg();
     void init_listWidget_ConfigList();
-    quint32 get_estimated_time();
+    quint32 get_estimated_time(QString ModText);
+    void delay(int msec);
 
     const QString ModelFilePath = "./ModelFiles";
     const QString RegularExpression = "(?<={)\\S*?(?=})";
