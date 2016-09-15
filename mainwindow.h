@@ -12,6 +12,10 @@
 #include <QListWidgetItem>
 #include <QDesktopServices>
 #include <QTime>
+#include <QTimer>
+#include <QScrollBar>
+#include <QProgressBar>
+
 
 namespace Ui {
 class MainWindow;
@@ -25,15 +29,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private slots:
-    void on_pushButton_Save_clicked();
-    void on_comboBox_ModelFile_currentIndexChanged(const QString &arg1);
-    void on_actionWrite_triggered();
-    void on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item);
-    void on_pushButton_ModelFile_clicked();
-    void on_checkBox_ShowLog_toggled(bool checked);
-
-    void on_pushButton_clicked();
+public slots:
 
 private:
     Ui::MainWindow *ui;
@@ -50,6 +46,20 @@ private:
     const QString ModelSuffix = "txt";
     const QString Commas = "%--------%";
     const QString SpecialCharacter = "%";
+
+    QProgressBar *RunTime = new QProgressBar();
+    QTimer *Timer = new QTimer();
+
+private slots:
+    void on_pushButton_Save_clicked();
+    void on_comboBox_ModelFile_currentIndexChanged(const QString &arg1);
+    void on_actionWrite_triggered();
+    void on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item);
+    void on_pushButton_ModelFile_clicked();
+    void on_checkBox_ShowLog_toggled(bool checked);
+    void on_textEdit_Log_textChanged();
+    void timer_timeout();
+
 };
 
 #endif // MAINWINDOW_H

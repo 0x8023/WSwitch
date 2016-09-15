@@ -1,10 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QDebug>
-#include <QThread>
-
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -14,10 +10,14 @@ MainWindow::MainWindow(QWidget *parent) :
     init_comboBox_ModelFile();
     init_comboBox_SerialPort();
     init_listWidget_ConfigList();
+
+    connect(Timer, SIGNAL(timeout()), this, SLOT(timer_timeout()));
 }
 
 MainWindow::~MainWindow()
 {
+    delete RunTime;
+    delete Timer;
     delete ui;
 }
 
@@ -90,6 +90,9 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
 }
 
 void MainWindow::on_actionWrite_triggered(){
+    //清空log
+    ui->textEdit_Log->clear();
+
     //读取文件内容
     QFile ModFile(ModelFilePath + "/" + ui->comboBox_ModelFile->currentText());
     if (!ModFile.open(QIODevice::ReadOnly)){
@@ -104,6 +107,12 @@ void MainWindow::on_actionWrite_triggered(){
         ModText.replace(QRegularExpression("{" + ui->tableWidget_arg->item(con,0)->text() + "}"), ui->tableWidget_arg->item(con,1)->text());
     }
 
+    //预计时间/设置滚动条
+    RunTime->setValue(0);
+    RunTime->show();
+    ui->statusBar->addWidget(RunTime);
+    Timer->start(get_estimated_time(ModText));
+
     //初始化串口
     QSerialPort serialport;
     serialport.setPortName(ui->comboBox_SerialPort->currentText()); //串口号
@@ -117,31 +126,37 @@ void MainWindow::on_actionWrite_triggered(){
         return;
     }
 
-    //解析内容
-    QString data = "";
+    //解析/发送内容
     if (!ModText.isEmpty()){
+        QString data = "";
         for (const QString& Command : ModText.split("\r\n")){
             if (!Command.startsWith("%")){ //不是命令
                 if(!Command.isEmpty()){
                     data += Command + "\r\n";
                 }
-            }else if (Command.startsWith("%Delay:")){ //延时
+            }else if (Command.startsWith("%Delay")){ //延时
                 delay(Command.mid(7).toInt());
-            }else if (Command.startsWith("%Enter:")){ //回车
+            }else if (Command.startsWith("%Enter")){ //回车
                 serialport.write("\r\n");
-            }else if (Command.startsWith("%Send:")){ //发送单条命令
-                serialport.write(Command.mid(6).toLatin1() + "\r\n");
-            }else if (Command.startsWith("%Write:")){ //发送多条命令
+                delay(10);
+                ui->textEdit_Log->insertPlainText("\r\n");
+            }else if (Command.startsWith("%Send")){ //发送单条命令
                 serialport.write(data.toLatin1());
-                delay(data.length()*2);
+                delay((quint32)(data.length() / (ui->comboBox_Baud->currentText().toDouble()/(8000 + 2048))) + 128);
+                ui->textEdit_Log->insertPlainText(data);
                 data.clear();
             }else{
                 ;
             }
         }
     }
-    delay(256);
+    delay(512);
     serialport.close();
+
+    //关闭进度条/定时器
+    Timer->stop();
+    RunTime->hide();
+    ui->statusBar->removeWidget(RunTime);
     QMessageBox::information(this, "成功!", "写入完成.");
 }
 
@@ -177,23 +192,24 @@ void MainWindow::on_pushButton_ModelFile_clicked(){
 quint32 MainWindow::get_estimated_time(QString ModText){
     quint32 runtime = 0;
     if (!ModText.isEmpty()){
+        QString data = "";
         for (const QString& Command : ModText.split("\r\n")){
             if (!Command.startsWith("%")){ //不是命令
-                runtime += 16;
-            }else if (Command.startsWith("%Delay%")){ //延时
-                runtime += Command.mid(5).toInt() + 10;
-            }else if (Command.startsWith("%Enter%")){ //回车
-                runtime += 32;
-            }else if (Command.startsWith("%Send%")){ //发送单条命令
-                runtime += 64;
-            }else if (Command.startsWith("%Write%")){ //发送多条命令
-                runtime += 128;
+                if(!Command.isEmpty()){
+                    data += Command + "\r\n";
+                }
+            }else if (Command.startsWith("%Delay")){ //延时
+                runtime += Command.mid(7).toInt();
+            }else if (Command.startsWith("%Enter")){ //回车
+                runtime += 8;
+            }else if (Command.startsWith("%Send")){ //发送命令
+                runtime += (quint32)(data.length() / (ui->comboBox_Baud->currentText().toDouble()/(8000 + 2048))) + 128;
             }else{
                 ;
             }
         }
     }
-    return runtime + 512;
+    return (quint32)(runtime/100);
 }
 
 void MainWindow::on_checkBox_ShowLog_toggled(bool checked){
@@ -208,21 +224,14 @@ void MainWindow::delay(int msec){
     }
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    QSerialPort *serialport = new QSerialPort();
-    serialport->setPortName("COM3"); //串口号
-    serialport->setBaudRate(QSerialPort::Baud9600); //波特率
-    serialport->setDataBits(QSerialPort::Data8); //数据位
-    serialport->setParity(QSerialPort::NoParity); //校验位
-    serialport->setStopBits(QSerialPort::OneStop); //停止位
-    serialport->setFlowControl(QSerialPort::NoFlowControl); //流控
-    if(!serialport->open(QIODevice::WriteOnly)){
-        QMessageBox::critical(this, "错误!", "打开串口失败.");
-        return;
-    }
+void MainWindow::on_textEdit_Log_textChanged(){
+    ui->textEdit_Log->verticalScrollBar()->setSliderPosition(ui->textEdit_Log->verticalScrollBar()->maximum());
+}
 
-    serialport->write("233333\r\n");
-    delay(2000);
-    serialport->close();
+void MainWindow::timer_timeout(){
+    if (RunTime->value() < 100){
+        RunTime->setValue(RunTime->value() + 1);
+    }else{
+        Timer->stop();
+    }
 }

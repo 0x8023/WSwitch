@@ -6,17 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>622</width>
-    <height>511</height>
+    <width>621</width>
+    <height>579</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>WSwitch</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout_5" stretch="5,2">
+     <layout class="QVBoxLayout" name="verticalLayout_5" stretch="5,3">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="5,10,6">
         <item>
@@ -247,6 +247,12 @@
         <property name="enabled">
          <bool>true</bool>
         </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
        </widget>
       </item>
      </layout>
@@ -258,13 +264,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>622</width>
+     <width>621</width>
      <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>help</string>
+     <string>帮助</string>
     </property>
    </widget>
    <addaction name="menuHelp"/>
@@ -281,7 +287,11 @@
    </attribute>
    <addaction name="actionWrite"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="styleSheet">
+    <string notr="true">QStatusBar::item{border: 0px}</string>
+   </property>
+  </widget>
   <action name="actionWrite">
    <property name="text">
     <string>写入</string>
