@@ -1,0 +1,303 @@
+﻿%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%E
+%D:500
+%S:enable
+%D:500
+%S:configure terminal
+%D:500
+%--------%
+enable password UWPWQW]W[W encrypt
+user admin password 0 gbcom
+hostname {主机名}
+vlan {管理vlan}
+exit
+vlan {业务vlan}
+exit
+no loopback-detection enable
+hash mode xor
+port-padding enable
+interface gigabitEthernet 0/1
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/2-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/2
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1,0/3-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/3
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/2,0/4-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/4
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/3,0/5-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/5
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/4,0/6-0/23
+poe alloc-power 30
+poe recover auto
+exit
+interface gigabitEthernet 0/6
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/5,0/7-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/7
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/6,0/8-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/8
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/7,0/9-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/9
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/8,0/10-0/23
+poe alloc-power 0
+poe recover auto
+exit 
+interface gigabitEthernet 0/10
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/9,0/11-0/23
+poe alloc-power 0
+poe recover auto
+exit 
+interface gigabitEthernet 0/11
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/10,0/12-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/12
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/11,0/13-0/23
+poe alloc-power 0
+poe recover auto
+exit 
+interface gigabitEthernet 0/13
+no shutdown 
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/12,0/14-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/14
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/13,0/15-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/15
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/14,0/16-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/16
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/15,0/17-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/17
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/16,0/18-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/18
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/17,0/19-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/19
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/18,0/20-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/20
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/19,0/21-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/21
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/20,0/22-0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/22
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/21,0/23
+poe alloc-power 0
+poe recover auto
+exit
+interface gigabitEthernet 0/23
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+isolate-port  interface gigabitEthernet 0/1-0/22
+poe alloc-power 0
+poe recover auto
+no poe enable
+exit
+interface gigabitEthernet 0/24
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+poe alloc-power 0
+poe recover auto
+no poe enable
+exit
+interface gigabitEthernet 0/25
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+exit
+interface gigabitEthernet 0/26
+no shutdown
+switch mode trunk
+switch trunk allowed vlan {管理vlan}
+switch trunk allowed vlan {业务vlan}
+switch trunk native vlan {管理vlan}
+exit
+interface vlan {管理vlan}
+ip address {IP地址} 255.255.0.0
+exit
+ip route 0.0.0.0 0.0.0.0 {网关地址}
+line vty 0 12
+exec-timeout 10 0
+privilege level 15
+password 0 gbcom
+login local    
+exit
+exit
+write
+%--------%

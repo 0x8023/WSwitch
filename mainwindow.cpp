@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "QDebug"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -75,7 +77,6 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
     }
 
     //循环写入表格
-    ui->tableWidget_arg->setRowCount(2);
     ui->tableWidget_arg->setRowCount(ParameterSet.size());
     quint16 con = 0;
     for (const QString& Parameter : ParameterSet){
@@ -90,6 +91,9 @@ void MainWindow::on_comboBox_ModelFile_currentIndexChanged(const QString &arg1){
 }
 
 void MainWindow::on_actionWrite_triggered(){
+    //禁用手动模式
+    ui->lineEdit_Command->setEnabled(false);
+
     //清空log
     ui->textEdit_Log->clear();
 
@@ -158,15 +162,22 @@ void MainWindow::on_actionWrite_triggered(){
     RunTime->hide();
     ui->statusBar->removeWidget(RunTime);
     QMessageBox::information(this, "成功!", "写入完成.");
+
+    //启用手动模式
+    ui->lineEdit_Command->setEnabled(true);
 }
 
 void MainWindow::on_pushButton_Save_clicked(){
-    //保存配置
     QSettings ConfigFile(ConfigFileName, QSettings::IniFormat);
+    //保存配置
     ConfigFile.beginGroup(ui->lineEdit_ModName->text());
     ConfigFile.setValue("SerialPort", ui->comboBox_SerialPort->currentText());
     ConfigFile.setValue("Baud", ui->comboBox_Baud->currentText());
     ConfigFile.setValue("ModelFile", ui->comboBox_ModelFile->currentText());
+    //保存自定义参数
+    for (qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
+        ConfigFile.setValue(ui->tableWidget_arg->item(con, 0)->text(), ui->tableWidget_arg->item(con, 1)->text());
+    }
     ConfigFile.endGroup();
 
     //刷新配置列表
@@ -174,14 +185,28 @@ void MainWindow::on_pushButton_Save_clicked(){
     init_listWidget_ConfigList();
 }
 
-void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item){
-    //载入配置
+void MainWindow::on_pushButton_Delete_clicked(){
+    //删除配置
     QSettings ConfigFile(ConfigFileName, QSettings::IniFormat);
+    ConfigFile.remove(ui->listWidget_ConfigList->selectedItems()[0]->text());
+
+    //刷新配置列表
+    ui->listWidget_ConfigList->clear();
+    init_listWidget_ConfigList();
+}
+
+void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *item){
+    QSettings ConfigFile(ConfigFileName, QSettings::IniFormat);
+    //载入配置
     ui->lineEdit_ModName->setText(item->text());
     ConfigFile.beginGroup(item->text());
     ui->comboBox_SerialPort->setCurrentIndex(ui->comboBox_SerialPort->findText(ConfigFile.value("SerialPort").toString()));
     ui->comboBox_Baud->setCurrentText(ConfigFile.value("Baud").toString());
     ui->comboBox_ModelFile->setCurrentIndex(ui->comboBox_ModelFile->findText(ConfigFile.value("ModelFile").toString()));
+    //载入自定义参数
+    for (qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
+        ui->tableWidget_arg->setItem(con, 1, new QTableWidgetItem(ConfigFile.value(ui->tableWidget_arg->item(con, 0)->text()).toString()));
+    }
     ConfigFile.endGroup();
 }
 
@@ -215,6 +240,7 @@ quint32 MainWindow::get_estimated_time(QString ModText){
 void MainWindow::on_checkBox_ShowLog_toggled(bool checked){
     //隐藏/显示详细讯息
     ui->textEdit_Log->setVisible(checked);
+    ui->lineEdit_Command->setVisible(checked);
 }
 
 void MainWindow::delay(int msec){
@@ -234,4 +260,37 @@ void MainWindow::timer_timeout(){
     }else{
         Timer->stop();
     }
+}
+
+void MainWindow::on_lineEdit_Command_returnPressed()
+{
+    //禁用输入
+    ui->lineEdit_Command->setEnabled(false);
+
+    //打开串口
+    QSerialPort serialport;
+    serialport.setPortName(ui->comboBox_SerialPort->currentText()); //串口号
+    serialport.setBaudRate(ui->comboBox_Baud->currentText().toInt()); //波特率
+    serialport.setDataBits(QSerialPort::Data8); //数据位
+    serialport.setParity(QSerialPort::NoParity); //校验位
+    serialport.setStopBits(QSerialPort::OneStop); //停止位
+    serialport.setFlowControl(QSerialPort::NoFlowControl); //流控
+    if(!serialport.open(QIODevice::ReadWrite)){
+        QMessageBox::critical(this, "错误!", "打开串口失败.");
+        return;
+    }
+
+    //发送数据
+    QString data = ui->lineEdit_Command->text() + "\r\n";
+    serialport.write(data.toLatin1());
+    delay(data.length() / (ui->comboBox_Baud->currentText().toDouble()/(8000 + 2048)) + 128);
+    ui->textEdit_Log->insertPlainText(data);
+    ui->lineEdit_Command->clear();
+
+    //关闭串口
+    serialport.close();
+
+    //启用输入
+    ui->lineEdit_Command->setEnabled(true);
+    ui->lineEdit_Command->setFocus();
 }

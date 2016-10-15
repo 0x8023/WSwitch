@@ -60,6 +60,8 @@ private slots:
     void on_textEdit_Log_textChanged();
     void timer_timeout();
 
+    void on_pushButton_Delete_clicked();
+    void on_lineEdit_Command_returnPressed();
 };
 
 #endif // MAINWINDOW_H

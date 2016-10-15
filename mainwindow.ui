@@ -16,9 +16,9 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <layout class="QVBoxLayout" name="verticalLayout_5" stretch="5,3">
+     <layout class="QVBoxLayout" name="verticalLayout_5" stretch="5,2,0">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="5,10,6">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="5,16,10">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
@@ -28,11 +28,22 @@
            <widget class="QLineEdit" name="lineEdit_ModName"/>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_Save">
-            <property name="text">
-             <string>保存配置</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QPushButton" name="pushButton_Save">
+              <property name="text">
+               <string>保存</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_Delete">
+              <property name="text">
+               <string>删除</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -229,7 +240,7 @@
             <item>
              <widget class="QCheckBox" name="checkBox_ShowLog">
               <property name="text">
-               <string>显示详细讯息</string>
+               <string>详细讯息</string>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -254,6 +265,9 @@
          <enum>Qt::ScrollBarAlwaysOff</enum>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit_Command"/>
       </item>
      </layout>
     </item>
