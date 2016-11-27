@@ -39,6 +39,7 @@ private:
     void init_listWidget_ConfigList();
     quint32 get_estimated_time(QString ModText);
     void delay(int msec);
+    void write_log();
 
     const QString ModelFilePath = "./ModelFiles";
     const QString RegularExpression = "(?<={)\\S*?(?=})";
@@ -46,6 +47,7 @@ private:
     const QString ModelSuffix = "txt";
     const QString Commas = "%--------%";
     const QString SpecialCharacter = "%";
+    const QString LogFileSuffix = ".csv";
 
     QProgressBar *RunTime = new QProgressBar();
     QTimer *Timer = new QTimer();

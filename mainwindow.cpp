@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include "QDebug"
+#include "QTextCodec"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -157,6 +158,9 @@ void MainWindow::on_actionWrite_triggered(){
     delay(512);
     serialport.close();
 
+    //写入CSV文件
+    write_log();
+
     //关闭进度条/定时器
     Timer->stop();
     RunTime->hide();
@@ -174,6 +178,7 @@ void MainWindow::on_pushButton_Save_clicked(){
     ConfigFile.setValue("SerialPort", ui->comboBox_SerialPort->currentText());
     ConfigFile.setValue("Baud", ui->comboBox_Baud->currentText());
     ConfigFile.setValue("ModelFile", ui->comboBox_ModelFile->currentText());
+    ConfigFile.setValue("LogFile", ui->lineEdit_LogFile->text());
     //保存自定义参数
     for (qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
         ConfigFile.setValue(ui->tableWidget_arg->item(con, 0)->text(), ui->tableWidget_arg->item(con, 1)->text());
@@ -201,8 +206,10 @@ void MainWindow::on_listWidget_ConfigList_itemDoubleClicked(QListWidgetItem *ite
     ui->lineEdit_ModName->setText(item->text());
     ConfigFile.beginGroup(item->text());
     ui->comboBox_SerialPort->setCurrentIndex(ui->comboBox_SerialPort->findText(ConfigFile.value("SerialPort").toString()));
-    ui->comboBox_Baud->setCurrentText(ConfigFile.value("Baud").toString());
+    ui->comboBox_Baud->setCurrentIndex(ui->comboBox_Baud->findText(ConfigFile.value("Baud").toString()));
     ui->comboBox_ModelFile->setCurrentIndex(ui->comboBox_ModelFile->findText(ConfigFile.value("ModelFile").toString()));
+    ui->lineEdit_LogFile->setText(ConfigFile.value("LogFile").toString());
+    ConfigFile.setValue("LogFile", ui->lineEdit_LogFile->text());
     //载入自定义参数
     for (qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
         ui->tableWidget_arg->setItem(con, 1, new QTableWidgetItem(ConfigFile.value(ui->tableWidget_arg->item(con, 0)->text()).toString()));
@@ -293,4 +300,27 @@ void MainWindow::on_lineEdit_Command_returnPressed()
     //启用输入
     ui->lineEdit_Command->setEnabled(true);
     ui->lineEdit_Command->setFocus();
+}
+
+void MainWindow::write_log(){
+    QFile LogFile(ui->lineEdit_LogFile->text() + LogFileSuffix);
+    if (!LogFile.open(QIODevice::ReadWrite)){
+        QMessageBox::critical(this, "错误!", "编辑输出文件失败.");
+        return;
+    }
+    LogFile.close();
+
+    if (!LogFile.open(QIODevice::Append)){
+        QMessageBox::critical(this, "错误!", "编辑输出文件失败.");
+        return;
+    }
+    QString data = ",";
+    for (qint16 con = ui->tableWidget_arg->rowCount() - 1; con >= 0; con--){
+        data += ui->tableWidget_arg->item(con, 1)->text() + ",";
+    }
+    QDataStream LogFileStream(&LogFile);
+    data += "\n";
+    qDebug()<<QTextCodec::codecForName("UTF-8")->fromUnicode(data.toLatin1().data());
+    LogFileStream << QTextCodec::codecForName("UTF-8")->fromUnicode(data.toLatin1().data());
+    LogFile.close();
 }
